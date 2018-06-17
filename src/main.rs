@@ -1,7 +1,11 @@
 extern crate image;
 
+mod vec3;
+
+use vec3::Vec3;
+
 enum Pixel {
-    RGB8(u8, u8, u8),
+    RGB8(Vec3),
     // RGBA8(u8, u8, u8, u8),
 }
 
@@ -18,10 +22,10 @@ impl Pixels {
         let mut buffer = Vec::new();
         for pixel in self.0 {
             match pixel {
-                Pixel::RGB8(r, g, b) => {
-                    buffer.push(r);
-                    buffer.push(g);
-                    buffer.push(b);
+                Pixel::RGB8(v) => {
+                    buffer.push((v.r() * u8::max_value() as f32) as u8);
+                    buffer.push((v.g() * u8::max_value() as f32) as u8);
+                    buffer.push((v.b() * u8::max_value() as f32) as u8);
                     buffer.push(u8::max_value());
                 }
             };
@@ -35,11 +39,8 @@ fn main() {
     let (w, h): (u32, u32) = (200, 100);
     for y in 0..h {
         for x in 0..w {
-            pixels.push(Pixel::RGB8(
-                ((x as f32 / w as f32) * u8::max_value() as f32) as u8,
-                (((h - y) as f32 / h as f32) * u8::max_value() as f32) as u8,
-                0,
-            ));
+            let color = Vec3::new(x as f32 / w as f32, y as f32 / h as f32, 0.2);
+            pixels.push(Pixel::RGB8(color));
         }
     }
     image::save_buffer("image.png", &pixels.to_buffer(), 200, 100, image::RGBA(8)).unwrap()
