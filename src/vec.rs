@@ -1,7 +1,12 @@
 use std::fmt;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
+#[derive(Copy)]
 pub(crate) struct Vec3(f32, f32, f32);
+
+impl Clone for Vec3 {
+    fn clone(&self) -> Vec3 { *self }
+}
 
 impl fmt::Debug for Vec3 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -74,6 +79,16 @@ impl<'a> Add for &'a Vec3 {
         )
     }
 }
+impl Add for Vec3 {
+    type Output = Vec3;
+    fn add(self, other: Vec3) -> Vec3 {
+        Vec3::new(
+            self.x() + other.x(),
+            self.y() + other.y(),
+            self.z() + other.z(),
+        )
+    }
+}
 impl AddAssign for Vec3 {
     fn add_assign(&mut self, other: Vec3) {
         self.0 += other.0;
@@ -121,6 +136,12 @@ impl<'a> Mul<f32> for &'a Vec3 {
     type Output = Vec3;
     fn mul(self, other: f32) -> Vec3 {
         Vec3::new(self.x() * other, self.y() * other, self.z() * other)
+    }
+}
+impl Mul<Vec3> for f32 {
+    type Output = Vec3;
+    fn mul(self, other: Vec3) -> Vec3 {
+        Vec3::new(self * other.x(), self * other.y(), self * other.z())
     }
 }
 impl<'a> Mul<&'a Vec3> for f32 {
