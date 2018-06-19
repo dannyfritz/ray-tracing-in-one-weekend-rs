@@ -45,11 +45,11 @@ impl Vec3 {
     pub fn length(&self) -> f32 {
         (self.x().powi(2) + self.y().powi(2) + self.z().powi(2)).sqrt()
     }
-    pub fn squred_length(&self) -> f32 {
+    pub fn squared_length(&self) -> f32 {
         self.x().powi(2) + self.y().powi(2) + self.z().powi(2)
     }
-    pub fn unit_vector(&self) -> Vec3 {
-        self / self.length()
+    pub fn unit_vector(v: &Vec3) -> Vec3 {
+        v / v.length()
     }
     pub fn make_unit_vector(&mut self) {
         let k = 1.0 / self.length();
@@ -57,14 +57,14 @@ impl Vec3 {
         self.1 *= k;
         self.2 *= k;
     }
-    pub fn dot(&self, other: &Vec3) -> f32 {
-        self.x() * other.x() + self.y() * other.y() + self.z() * other.z()
+    pub fn dot(v1: &Vec3, v2: &Vec3) -> f32 {
+        v1.x() * v2.x() + v1.y() * v2.y() + v1.z() * v2.z()
     }
-    pub fn cross(&self, other: &Vec3) -> Vec3 {
+    pub fn cross(v1: &Vec3, v2: &Vec3) -> Vec3 {
         Vec3::new(
-            self.y() * other.z() - self.z() * other.y(),
-            -self.x() * other.z() - self.z() * other.x(),
-            self.x() * other.y() - self.y() * other.x(),
+            v1.y() * v2.z() - v1.z() * v2.y(),
+            -v1.x() * v2.z() - v1.z() * v2.x(),
+            v1.x() * v2.y() - v1.y() * v2.x(),
         )
     }
 }
