@@ -1,57 +1,30 @@
 extern crate image;
 
+mod hitable;
+mod pixel;
 mod ray;
 mod vec;
 
+use hitable::{Hitable, Sphere, World};
+use pixel::{Pixel, Pixels};
 use ray::Ray;
 use vec::Vec3;
 
-enum Pixel {
-    RGB8(Vec3),
-    // RGBA8(u8, u8, u8, u8),
-}
-
-struct Pixels(Vec<Pixel>);
-
-impl Pixels {
-    fn new() -> Pixels {
-        Pixels(Vec::new())
-    }
-    fn push(&mut self, pixel: Pixel) {
-        self.0.push(pixel);
-    }
-    fn to_buffer(self) -> Box<[u8]> {
-        let mut buffer = Vec::new();
-        for pixel in self.0 {
-            match pixel {
-                Pixel::RGB8(v) => {
-                    buffer.push((v.r() * u8::max_value() as f32) as u8);
-                    buffer.push((v.g() * u8::max_value() as f32) as u8);
-                    buffer.push((v.b() * u8::max_value() as f32) as u8);
-                    buffer.push(u8::max_value());
-                }
-            };
+fn color(r: &Ray, world: &World) -> Vec3 {
+    match world.hit(r, 0.0, std::f32::MAX) {
+        Some(ref rec) => {
+            0.5 * Vec3::new(
+                rec.normal.x() + 1.0,
+                rec.normal.y() + 1.0,
+                rec.normal.z() + 1.0,
+            )
         }
-        buffer.into_boxed_slice()
+        None => {
+            let unit_direction = Vec3::unit_vector(&r.direction());
+            let t = 0.5 * (unit_direction.y() + 1.0);
+            return (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0);
+        }
     }
-}
-
-fn hit_sphere(center: &Vec3, radius: f32, r: &Ray) -> bool {
-    let oc = &r.origin() - center;
-    let a = Vec3::dot(&r.direction(), &r.direction());
-    let b = 2.0 * Vec3::dot(&oc, &r.direction());
-    let c = Vec3::dot(&oc, &oc) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c;
-    discriminant > 0.0
-}
-
-fn color(r: &Ray) -> Vec3 {
-    if hit_sphere(&Vec3::new(0.0, 0.0, -1.0), 0.5, r) {
-        return Vec3::new(1.0, 0.0, 0.0)
-    }
-    let unit_direction = Vec3::unit_vector(&r.direction());
-    let t = 0.5 * (unit_direction.y() + 1.0);
-    (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
 }
 
 fn main() {
@@ -61,12 +34,21 @@ fn main() {
     let horizontal = Vec3::new(4.0, 0.0, 0.0);
     let vertical = Vec3::new(0.0, 2.0, 0.0);
     let origin = Vec3::new(0.0, 0.0, 0.0);
+    let world = World {
+        hitables: vec![
+            Box::new(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5)),
+            Box::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0)),
+        ],
+    };
     for y in 0..h {
         for x in 0..w {
             let u = x as f32 / w as f32;
             let v = y as f32 / h as f32;
-            let r = Ray::new(origin, lower_left_corner + u * horizontal + (1.0 - v) * vertical);
-            pixels.push(Pixel::RGB8(color(&r)));
+            let r = Ray::new(
+                origin,
+                lower_left_corner + u * horizontal + (1.0 - v) * vertical,
+            );
+            pixels.push(Pixel::RGB8(color(&r, &world)));
         }
     }
     image::save_buffer("image.png", &pixels.to_buffer(), 200, 100, image::RGBA(8)).unwrap()
