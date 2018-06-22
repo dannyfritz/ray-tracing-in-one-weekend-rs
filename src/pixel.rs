@@ -1,11 +1,11 @@
 use vec::Vec3;
 
-pub(crate) enum Pixel {
+pub enum Pixel {
     RGB8(Vec3),
     // RGBA8(u8, u8, u8, u8),
 }
 
-pub(crate) struct Pixels(Vec<Pixel>);
+pub struct Pixels(Vec<Pixel>);
 
 impl Pixels {
     pub fn new() -> Pixels {
@@ -29,4 +29,3 @@ impl Pixels {
         buffer.into_boxed_slice()
     }
 }
-

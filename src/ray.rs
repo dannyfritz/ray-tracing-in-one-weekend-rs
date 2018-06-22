@@ -1,6 +1,6 @@
 use vec::Vec3;
 
-pub(crate) struct Ray {
+pub struct Ray {
     a: Vec3,
     b: Vec3,
 }

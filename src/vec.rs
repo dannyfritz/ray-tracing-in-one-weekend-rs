@@ -2,10 +2,12 @@ use std::fmt;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 #[derive(Copy)]
-pub(crate) struct Vec3(f32, f32, f32);
+pub struct Vec3(f32, f32, f32);
 
 impl Clone for Vec3 {
-    fn clone(&self) -> Vec3 { *self }
+    fn clone(&self) -> Vec3 {
+        *self
+    }
 }
 
 impl fmt::Debug for Vec3 {

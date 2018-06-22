@@ -1,35 +1,35 @@
 use ray::Ray;
 use vec::Vec3;
 
-pub(crate) struct HitRecord {
+pub struct HitRecord {
     pub t: f32,
     pub p: Vec3,
     pub normal: Vec3,
 }
 
-pub(crate) trait Hitable {
+pub trait Hitable {
     fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord>;
 }
 
-pub(crate) struct World {
+pub struct World {
     pub hitables: Vec<Box<dyn Hitable>>,
 }
 
 impl Hitable for World {
     fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        let mut hit: Option<HitRecord> = None;
         let mut closest = t_max;
-        for hitable in &self.hitables {
+        self.hitables.iter().fold(None, |hit, hitable| {
             if let Some(rec) = hitable.hit(r, t_min, closest) {
                 closest = rec.t;
-                hit = Some(rec);
+                Some(rec)
+            } else {
+                hit
             }
-        }
-        hit
+        })
     }
 }
 
-pub(crate) struct Sphere {
+pub struct Sphere {
     center: Vec3,
     radius: f32,
 }

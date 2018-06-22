@@ -1,12 +1,16 @@
 extern crate image;
+extern crate rand;
 
+mod camera;
 mod hitable;
 mod pixel;
 mod ray;
 mod vec;
 
+use camera::Camera;
 use hitable::{Hitable, Sphere, World};
 use pixel::{Pixel, Pixels};
+use rand::{thread_rng, Rng};
 use ray::Ray;
 use vec::Vec3;
 
@@ -30,10 +34,8 @@ fn color(r: &Ray, world: &World) -> Vec3 {
 fn main() {
     let mut pixels = Pixels::new();
     let (w, h): (u32, u32) = (200, 100);
-    let lower_left_corner = Vec3::new(-2.0, -1.0, -1.0);
-    let horizontal = Vec3::new(4.0, 0.0, 0.0);
-    let vertical = Vec3::new(0.0, 2.0, 0.0);
-    let origin = Vec3::new(0.0, 0.0, 0.0);
+    let s = 100;
+    let camera = Camera::new();
     let world = World {
         hitables: vec![
             Box::new(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5)),
@@ -42,13 +44,15 @@ fn main() {
     };
     for y in 0..h {
         for x in 0..w {
-            let u = x as f32 / w as f32;
-            let v = y as f32 / h as f32;
-            let r = Ray::new(
-                origin,
-                lower_left_corner + u * horizontal + (1.0 - v) * vertical,
-            );
-            pixels.push(Pixel::RGB8(color(&r, &world)));
+            let mut pixel = Vec3::new(0.0, 0.0, 0.0);
+            for _s in 0..s {
+                let u = (x as f32 + thread_rng().gen_range(0.0, 1.0)) / w as f32;
+                let v = (y as f32 + thread_rng().gen_range(0.0, 1.0)) / h as f32;
+                let r = camera.get_ray(u, v);
+                pixel += color(&r, &world);
+            }
+            pixel /= s as f32;
+            pixels.push(Pixel::RGB8(pixel));
         }
     }
     image::save_buffer("image.png", &pixels.to_buffer(), 200, 100, image::RGBA(8)).unwrap()
