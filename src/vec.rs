@@ -1,3 +1,4 @@
+use rand::{thread_rng, Rng};
 use std::fmt;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
@@ -68,6 +69,18 @@ impl Vec3 {
             -v1.x() * v2.z() - v1.z() * v2.x(),
             v1.x() * v2.y() - v1.y() * v2.x(),
         )
+    }
+    pub fn random_in_unit_sphere() -> Vec3 {
+        loop {
+            let p = 2.0 * Vec3::new(
+                thread_rng().gen_range(0.0, 1.0),
+                thread_rng().gen_range(0.0, 1.0),
+                thread_rng().gen_range(0.0, 1.0),
+            );
+            if p.squared_length() < 1.0 {
+                return p
+            }
+        }
     }
 }
 

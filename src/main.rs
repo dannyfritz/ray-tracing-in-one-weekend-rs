@@ -14,14 +14,11 @@ use rand::{thread_rng, Rng};
 use ray::Ray;
 use vec::Vec3;
 
-fn color(r: &Ray, world: &World) -> Vec3 {
-    match world.hit(r, 0.0, std::f32::MAX) {
+fn color(r: Ray, world: &World) -> Vec3 {
+    match world.hit(&r, 0.001, std::f32::MAX) {
         Some(ref rec) => {
-            0.5 * Vec3::new(
-                rec.normal.x() + 1.0,
-                rec.normal.y() + 1.0,
-                rec.normal.z() + 1.0,
-            )
+            let target = rec.p + rec.normal + Vec3::random_in_unit_sphere();
+            0.5 * color(Ray::new(rec.p, target - rec.p), world)
         }
         None => {
             let unit_direction = Vec3::unit_vector(&r.direction());
@@ -49,7 +46,7 @@ fn main() {
                 let u = (x as f32 + thread_rng().gen_range(0.0, 1.0)) / w as f32;
                 let v = (y as f32 + thread_rng().gen_range(0.0, 1.0)) / h as f32;
                 let r = camera.get_ray(u, v);
-                pixel += color(&r, &world);
+                pixel += color(r, &world);
             }
             pixel /= s as f32;
             pixels.push(Pixel::RGB8(pixel));
