@@ -3,7 +3,7 @@ use std::fmt;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 #[derive(Copy)]
-pub struct Vec3(f32, f32, f32);
+pub struct Vec3(pub f32, pub f32, pub f32);
 
 impl Clone for Vec3 {
     fn clone(&self) -> Vec3 {
@@ -70,15 +70,18 @@ impl Vec3 {
             v1.x() * v2.y() - v1.y() * v2.x(),
         )
     }
+    pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
+        v - 2.0 * Vec3::dot(v, n) * n
+    }
     pub fn random_in_unit_sphere() -> Vec3 {
         loop {
             let p = 2.0 * Vec3::new(
                 thread_rng().gen_range(0.0, 1.0),
                 thread_rng().gen_range(0.0, 1.0),
                 thread_rng().gen_range(0.0, 1.0),
-            );
+            ) - Vec3::new(1.0, 1.0, 1.0);
             if p.squared_length() < 1.0 {
-                return p
+                return p;
             }
         }
     }
@@ -122,6 +125,16 @@ impl<'a> Sub for &'a Vec3 {
         )
     }
 }
+impl<'a> Sub<Vec3> for &'a Vec3 {
+    type Output = Vec3;
+    fn sub(self, other: Vec3) -> Vec3 {
+        Vec3::new(
+            self.x() - other.x(),
+            self.y() - other.y(),
+            self.z() - other.z(),
+        )
+    }
+}
 impl Sub for Vec3 {
     type Output = Vec3;
     fn sub(self, other: Vec3) -> Vec3 {
@@ -129,6 +142,16 @@ impl Sub for Vec3 {
             self.x() - other.x(),
             self.y() - other.y(),
             self.z() - other.z(),
+        )
+    }
+}
+impl Sub<f32> for Vec3 {
+    type Output = Vec3;
+    fn sub(self, other: f32) -> Vec3 {
+        Vec3::new(
+            self.x() - other,
+            self.y() - other,
+            self.z() - other,
         )
     }
 }
@@ -143,6 +166,16 @@ impl SubAssign for Vec3 {
 impl<'a> Mul for &'a Vec3 {
     type Output = Vec3;
     fn mul(self, other: &Vec3) -> Vec3 {
+        Vec3::new(
+            self.x() * other.x(),
+            self.y() * other.y(),
+            self.z() * other.z(),
+        )
+    }
+}
+impl Mul for Vec3 {
+    type Output = Vec3;
+    fn mul(self, other: Vec3) -> Vec3 {
         Vec3::new(
             self.x() * other.x(),
             self.y() * other.y(),
