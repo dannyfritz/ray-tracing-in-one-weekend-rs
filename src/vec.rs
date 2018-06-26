@@ -148,11 +148,7 @@ impl Sub for Vec3 {
 impl Sub<f32> for Vec3 {
     type Output = Vec3;
     fn sub(self, other: f32) -> Vec3 {
-        Vec3::new(
-            self.x() - other,
-            self.y() - other,
-            self.z() - other,
-        )
+        Vec3::new(self.x() - other, self.y() - other, self.z() - other)
     }
 }
 impl SubAssign for Vec3 {
