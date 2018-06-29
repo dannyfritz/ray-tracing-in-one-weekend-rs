@@ -13,7 +13,7 @@ pub struct Lambertian {
 }
 impl Lambertian {
     pub fn new(albedo: Vec3) -> Lambertian {
-        Lambertian { albedo: albedo }
+        Lambertian { albedo }
     }
 }
 impl Material for Lambertian {
@@ -30,8 +30,8 @@ pub struct Metal {
 impl Metal {
     pub fn new(albedo: Vec3, fuzz: f32) -> Metal {
         Metal {
-            albedo: albedo,
-            fuzz: fuzz,
+            albedo,
+            fuzz,
         }
     }
 }

@@ -38,11 +38,11 @@ pub struct Sphere {
     material: Rc<Material>,
 }
 impl Sphere {
-    pub fn new(center: Vec3, r: f32, material: Rc<dyn Material>) -> Sphere {
+    pub fn new(center: Vec3, radius: f32, material: Rc<dyn Material>) -> Sphere {
         Sphere {
-            center: center,
-            radius: r,
-            material: material,
+            center,
+            radius,
+            material,
         }
     }
 }
@@ -73,6 +73,6 @@ impl Hitable for Sphere {
                 });
             }
         }
-        return None;
+        None
     }
 }

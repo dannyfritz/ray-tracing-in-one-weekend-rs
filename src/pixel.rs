@@ -14,14 +14,14 @@ impl Pixels {
     pub fn push(&mut self, pixel: Pixel) {
         self.0.push(pixel);
     }
-    pub fn to_buffer(self) -> Box<[u8]> {
+    pub fn create_buffer(self) -> Box<[u8]> {
         let mut buffer = Vec::new();
         for pixel in self.0 {
             match pixel {
                 Pixel::RGB8(v) => {
-                    buffer.push((v.r() * u8::max_value() as f32) as u8);
-                    buffer.push((v.g() * u8::max_value() as f32) as u8);
-                    buffer.push((v.b() * u8::max_value() as f32) as u8);
+                    buffer.push((v.r() * f32::from(u8::max_value())) as u8);
+                    buffer.push((v.g() * f32::from(u8::max_value())) as u8);
+                    buffer.push((v.b() * f32::from(u8::max_value())) as u8);
                     buffer.push(u8::max_value());
                 }
             };
