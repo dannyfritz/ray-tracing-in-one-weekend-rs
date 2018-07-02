@@ -1,5 +1,5 @@
 #![cfg_attr(feature = "cargo-clippy", deny(clippy, clippy_perf, clippy_correctness))]
-#![cfg_attr(feature = "cargo-clippy", warn(clippy_style, clippy_complexity))]
+#![cfg_attr(feature = "cargo-clippy", warn(clippy_style, clippy_complexity, clippy_cargo))]
 #![cfg_attr(feature = "cargo-clippy", allow(unknown_lints))]
 
 extern crate image;
@@ -14,7 +14,7 @@ mod vec;
 
 use camera::Camera;
 use hitable::{Sphere, World};
-use material::{Lambertian, Metal};
+use material::{Dialectric, Lambertian, Metal};
 use pixel::{Pixel, Pixels};
 use rand::{thread_rng, Rng};
 use ray::Ray;
@@ -54,7 +54,7 @@ fn main() {
             Box::new(Sphere::new(
                 Vec3::new(0.0, 0.0, -1.0),
                 0.5,
-                Rc::new(Lambertian::new(Vec3::new(0.8, 0.3, 0.3))),
+                Rc::new(Lambertian::new(Vec3::new(0.1, 0.2, 0.5))),
             )),
             Box::new(Sphere::new(
                 Vec3::new(0.0, -100.5, -1.0),
@@ -64,12 +64,17 @@ fn main() {
             Box::new(Sphere::new(
                 Vec3::new(-1.0, 0.0, -1.0),
                 0.5,
-                Rc::new(Metal::new(Vec3::new(0.8, 0.8, 0.8), 0.2)),
+                Rc::new(Dialectric::new(1.5)),
+            )),
+            Box::new(Sphere::new(
+                Vec3::new(-1.0, 0.0, -1.0),
+                -0.45,
+                Rc::new(Dialectric::new(1.5)),
             )),
             Box::new(Sphere::new(
                 Vec3::new(1.0, 0.0, -1.0),
                 0.5,
-                Rc::new(Metal::new(Vec3::new(0.8, 0.6, 0.2), 1.0)),
+                Rc::new(Metal::new(Vec3::new(0.8, 0.6, 0.2), 0.0)),
             )),
         ],
     };
@@ -87,5 +92,11 @@ fn main() {
             pixels.push(Pixel::RGB8(pixel));
         }
     }
-    image::save_buffer("image.png", &pixels.create_buffer(), 200, 100, image::RGBA(8)).unwrap()
+    image::save_buffer(
+        "image.png",
+        &pixels.create_buffer(),
+        200,
+        100,
+        image::RGBA(8),
+    ).unwrap()
 }
