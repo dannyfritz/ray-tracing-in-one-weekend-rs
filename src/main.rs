@@ -48,7 +48,7 @@ fn main() {
     let mut pixels = Pixels::new();
     let (w, h): (u32, u32) = (200, 100);
     let s = 100;
-    let camera = Camera::new();
+    let camera = Camera::new(&Vec3::new(-2.0, 2.0, 1.0), &Vec3::new(0.0, 0.0, -1.0), &Vec3::new(0.0, 1.0, 0.0), 20.0, w as f32 / h as f32);
     let world = World {
         hitables: vec![
             Box::new(Sphere::new(
