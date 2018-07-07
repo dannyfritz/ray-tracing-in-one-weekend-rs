@@ -12,7 +12,7 @@ pub struct Camera {
     lens_radius: f32,
     u: Vec3,
     v: Vec3,
-    w: Vec3,
+    // w: Vec3,
 }
 
 impl Camera {
@@ -47,7 +47,7 @@ impl Camera {
             lens_radius,
             u,
             v,
-            w,
+            // w,
         }
     }
     pub fn get_ray(&self, u: f32, v: f32) -> Ray {

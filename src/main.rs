@@ -19,6 +19,7 @@ mod ray;
 mod vec;
 
 use camera::Camera;
+use hitable::Hitable;
 use hitable::{Sphere, World};
 use material::{Dialectric, Lambertian, Metal};
 use pixel::{Pixel, Pixels};
@@ -50,51 +51,93 @@ fn color(r: &Ray, world: &World, depth: u32) -> Vec3 {
     }
 }
 
+fn random_scene() -> Vec<Box<dyn Hitable>> {
+    let mut hitables: Vec<Box<dyn Hitable>> = vec![];
+    hitables.push(Box::new(Sphere::new(
+        Vec3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Rc::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5))),
+    )));
+    for a in -11..=11 {
+        for b in -11..=11 {
+            let choose_mat = thread_rng().gen_range(0.0, 1.0);
+            let center = Vec3::new(
+                a as f32 + 0.9 + thread_rng().gen_range(0.0, 1.0),
+                0.2,
+                b as f32 + 0.9 + thread_rng().gen_range(0.0, 1.0),
+            );
+            if (center - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+                if choose_mat < 0.8 {
+                    hitables.push(Box::new(Sphere::new(
+                        center,
+                        0.2,
+                        Rc::new(Lambertian::new(Vec3::new(
+                            thread_rng().gen_range(0.0, 1.0) * thread_rng().gen_range(0.0, 1.0),
+                            thread_rng().gen_range(0.0, 1.0) * thread_rng().gen_range(0.0, 1.0),
+                            thread_rng().gen_range(0.0, 1.0) * thread_rng().gen_range(0.0, 1.0),
+                        ))),
+                    )));
+                } else if choose_mat < 0.95 {
+                    hitables.push(Box::new(Sphere::new(
+                        center,
+                        0.2,
+                        Rc::new(Metal::new(
+                            Vec3::new(
+                                0.5 * (1.0 + thread_rng().gen_range(0.0, 1.0)),
+                                0.5 * (1.0 + thread_rng().gen_range(0.0, 1.0)),
+                                0.5 * (1.0 + thread_rng().gen_range(0.0, 1.0)),
+                            ),
+                            0.5 + (1.0 + thread_rng().gen_range(0.0, 1.0)),
+                        )),
+                    )));
+                } else {
+                    hitables.push(Box::new(Sphere::new(
+                        center,
+                        0.2,
+                        Rc::new(Dialectric::new(1.5)),
+                    )));
+                }
+            }
+        }
+    }
+    hitables.push(Box::new(Sphere::new(
+        Vec3::new(0.0, 1.0, 0.0),
+        1.0,
+        Rc::new(Dialectric::new(1.5)),
+    )));
+    hitables.push(Box::new(Sphere::new(
+        Vec3::new(-4.0, 1.0, 0.0),
+        1.0,
+        Rc::new(Lambertian::new(Vec3::new(0.4, 0.2, 0.1))),
+    )));
+    hitables.push(Box::new(Sphere::new(
+        Vec3::new(4.0, 1.0, 0.0),
+        1.0,
+        Rc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0)),
+    )));
+    hitables
+}
+
 fn main() {
     let mut pixels = Pixels::new();
-    let (w, h): (u32, u32) = (200, 100);
-    let s = 100;
-    let look_from = Vec3::new(3.0, 3.0, 2.0);
+    let (w, h): (u32, u32) = (800, 600);
+    let total_pixels = w * h;
+    let s = 200;
+    let look_from = Vec3::new(10.0, 2.0, 3.0);
     let look_at = Vec3::new(0.0, 0.0, -1.0);
     let distance_to_focus = (look_from - look_at).length();
-    let aperture = 2.0;
+    let aperture = 0.1;
     let camera = Camera::new(
         &look_from,
         &look_at,
         &Vec3::new(0.0, 1.0, 0.0),
-        20.0,
+        25.0,
         w as f32 / h as f32,
         aperture,
         distance_to_focus,
     );
     let world = World {
-        hitables: vec![
-            Box::new(Sphere::new(
-                Vec3::new(0.0, 0.0, -1.0),
-                0.5,
-                Rc::new(Lambertian::new(Vec3::new(0.1, 0.2, 0.5))),
-            )),
-            Box::new(Sphere::new(
-                Vec3::new(0.0, -100.5, -1.0),
-                100.0,
-                Rc::new(Lambertian::new(Vec3::new(0.8, 0.8, 0.0))),
-            )),
-            Box::new(Sphere::new(
-                Vec3::new(-1.0, 0.0, -1.0),
-                0.5,
-                Rc::new(Dialectric::new(1.5)),
-            )),
-            Box::new(Sphere::new(
-                Vec3::new(-1.0, 0.0, -1.0),
-                -0.45,
-                Rc::new(Dialectric::new(1.5)),
-            )),
-            Box::new(Sphere::new(
-                Vec3::new(1.0, 0.0, -1.0),
-                0.5,
-                Rc::new(Metal::new(Vec3::new(0.8, 0.6, 0.2), 0.0)),
-            )),
-        ],
+        hitables: random_scene(),
     };
     for y in 0..h {
         for x in 0..w {
@@ -109,12 +152,12 @@ fn main() {
             let pixel = Vec3::new(pixel.x().sqrt(), pixel.y().sqrt(), pixel.z().sqrt());
             pixels.push(Pixel::RGB8(pixel));
         }
+        println!(
+            "{:.2}% done. {} of {}",
+            (y * w) as f32 / (total_pixels) as f32 * 100.0,
+            y * w,
+            total_pixels
+        );
     }
-    image::save_buffer(
-        "image.png",
-        &pixels.create_buffer(),
-        200,
-        100,
-        image::RGBA(8),
-    ).unwrap()
+    image::save_buffer("image.png", &pixels.create_buffer(), w, h, image::RGBA(8)).unwrap()
 }
