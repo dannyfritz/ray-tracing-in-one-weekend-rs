@@ -1,5 +1,11 @@
-#![cfg_attr(feature = "cargo-clippy", deny(clippy, clippy_perf, clippy_correctness))]
-#![cfg_attr(feature = "cargo-clippy", warn(clippy_style, clippy_complexity, clippy_cargo))]
+#![cfg_attr(
+    feature = "cargo-clippy",
+    deny(clippy, clippy_perf, clippy_correctness)
+)]
+#![cfg_attr(
+    feature = "cargo-clippy",
+    warn(clippy_style, clippy_complexity, clippy_cargo)
+)]
 #![cfg_attr(feature = "cargo-clippy", allow(unknown_lints))]
 
 extern crate image;
@@ -48,7 +54,19 @@ fn main() {
     let mut pixels = Pixels::new();
     let (w, h): (u32, u32) = (200, 100);
     let s = 100;
-    let camera = Camera::new(&Vec3::new(-2.0, 2.0, 1.0), &Vec3::new(0.0, 0.0, -1.0), &Vec3::new(0.0, 1.0, 0.0), 20.0, w as f32 / h as f32);
+    let look_from = Vec3::new(3.0, 3.0, 2.0);
+    let look_at = Vec3::new(0.0, 0.0, -1.0);
+    let distance_to_focus = (look_from - look_at).length();
+    let aperture = 2.0;
+    let camera = Camera::new(
+        &look_from,
+        &look_at,
+        &Vec3::new(0.0, 1.0, 0.0),
+        20.0,
+        w as f32 / h as f32,
+        aperture,
+        distance_to_focus,
+    );
     let world = World {
         hitables: vec![
             Box::new(Sphere::new(
