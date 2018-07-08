@@ -1,25 +1,26 @@
-use rand::{thread_rng, Rng};
-use ray::Ray;
+use nalgebra::normalize;
+use ncollide3d::math::{Point, Vector};
+use ncollide3d::query::Ray;
 use std::f32;
 use std::f32::consts::PI;
-use vec::Vec3;
+use utility::random::random_in_unit_disk;
 
 pub struct Camera {
-    origin: Vec3,
-    lower_left_corner: Vec3,
-    horizontal: Vec3,
-    vertical: Vec3,
+    origin: Vector<f32>,
+    lower_left_corner: Vector<f32>,
+    horizontal: Vector<f32>,
+    vertical: Vector<f32>,
     lens_radius: f32,
-    u: Vec3,
-    v: Vec3,
-    // w: Vec3,
+    u: Vector<f32>,
+    v: Vector<f32>,
+    // w: Vector<f32>,
 }
 
 impl Camera {
     pub fn new(
-        look_from: &Vec3,
-        look_at: &Vec3,
-        v_up: &Vec3,
+        look_from: &Vector<f32>,
+        look_at: &Vector<f32>,
+        v_up: &Vector<f32>,
         vfov: f32,
         aspect: f32,
         aperture: f32,
@@ -30,9 +31,9 @@ impl Camera {
         let half_height = f32::tan(theta / 2.0);
         let half_width = aspect * half_height;
         let origin = *look_from;
-        let w = Vec3::unit_vector(&(look_from - look_at));
-        let u = Vec3::unit_vector(&(Vec3::cross(v_up, &w)));
-        let v = Vec3::cross(&w, &u);
+        let w = normalize(&(look_from - look_at));
+        let u = normalize(&(Vector::cross(v_up, &w)));
+        let v = Vector::cross(&w, &u);
         let lower_left_corner = origin
             - half_width * focus_distance * u
             - half_height * focus_distance * v
@@ -50,27 +51,14 @@ impl Camera {
             // w,
         }
     }
-    pub fn get_ray(&self, u: f32, v: f32) -> Ray {
+    pub fn get_ray(&self, u: f32, v: f32) -> Ray<f32> {
         let rd = self.lens_radius * random_in_unit_disk();
-        let offset: Vec3 = rd.x() * self.u + rd.y() * self.v;
+        let offset = rd.x * self.u + rd.y * self.v;
         Ray::new(
-            self.origin + offset,
+            Point::from_coordinates(self.origin + offset),
             self.lower_left_corner + u * self.horizontal + (1.0 - v) * self.vertical
                 - self.origin
                 - offset,
         )
-    }
-}
-
-fn random_in_unit_disk() -> Vec3 {
-    loop {
-        let p = 2.0 * Vec3::new(
-            thread_rng().gen_range(0.0, 1.0),
-            thread_rng().gen_range(0.0, 1.0),
-            0.0,
-        ) - Vec3::new(1.0, 1.0, 0.0);
-        if Vec3::dot(&p, &p) < 1.0 {
-            return p;
-        }
     }
 }

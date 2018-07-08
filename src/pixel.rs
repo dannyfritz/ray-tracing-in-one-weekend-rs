@@ -1,7 +1,7 @@
-use vec::Vec3;
+use ncollide3d::math::Vector;
 
 pub enum Pixel {
-    RGB8(Vec3),
+    RGB8(Vector<f32>),
     // RGBA8(u8, u8, u8, u8),
 }
 
@@ -19,9 +19,9 @@ impl Pixels {
         for pixel in self.0 {
             match pixel {
                 Pixel::RGB8(v) => {
-                    buffer.push((v.r() * f32::from(u8::max_value())) as u8);
-                    buffer.push((v.g() * f32::from(u8::max_value())) as u8);
-                    buffer.push((v.b() * f32::from(u8::max_value())) as u8);
+                    buffer.push((v.x * f32::from(u8::max_value())) as u8);
+                    buffer.push((v.y * f32::from(u8::max_value())) as u8);
+                    buffer.push((v.z * f32::from(u8::max_value())) as u8);
                     buffer.push(u8::max_value());
                 }
             };
