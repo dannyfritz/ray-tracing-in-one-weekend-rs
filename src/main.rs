@@ -7,9 +7,14 @@
     warn(clippy_style, clippy_complexity, clippy_cargo)
 )]
 #![cfg_attr(feature = "cargo-clippy", allow(unknown_lints))]
+#![cfg_attr(feature = "flame_it", feature(plugin, custom_attribute))]
+#![cfg_attr(feature = "flame_it", plugin(flamer))]
 
 extern crate image;
 extern crate rand;
+
+#[cfg(feature = "profile")]
+extern crate flame;
 
 mod camera;
 mod hitable;
@@ -32,6 +37,8 @@ const MAX_DEPTH: u32 = 50;
 const NO_COLOR: Vec3 = Vec3(0.0, 0.0, 0.0);
 
 fn color(r: &Ray, world: &World, depth: u32) -> Vec3 {
+    #[cfg(feature = "profile")]
+    let _guard = flame::start_guard("color");
     if depth > MAX_DEPTH {
         return NO_COLOR;
     }
@@ -119,10 +126,10 @@ fn random_scene() -> Vec<Box<dyn Hitable>> {
 }
 
 fn main() {
+    profile_start("main");
     let mut pixels = Pixels::new();
-    let (w, h): (u32, u32) = (800, 600);
-    let total_pixels = w * h;
-    let s = 200;
+    let (w, h): (u32, u32) = (300, 200);
+    let s = 100;
     let look_from = Vec3::new(10.0, 2.0, 3.0);
     let look_at = Vec3::new(0.0, 0.0, -1.0);
     let distance_to_focus = (look_from - look_at).length();
@@ -139,8 +146,11 @@ fn main() {
     let world = World {
         hitables: random_scene(),
     };
+    profile_start("ray casting");
     for y in 0..h {
+        profile_start("ray casting row");
         for x in 0..w {
+            profile_start("ray casting pixel");
             let mut pixel = Vec3::new(0.0, 0.0, 0.0);
             for _s in 0..s {
                 let s_u = (x as f32 + thread_rng().gen_range(0.0, 1.0)) / w as f32;
@@ -149,15 +159,38 @@ fn main() {
                 pixel += color(&ray, &world, 0);
             }
             pixel /= s as f32;
+            profile_start("store pixel");
             let pixel = Vec3::new(pixel.x().sqrt(), pixel.y().sqrt(), pixel.z().sqrt());
             pixels.push(Pixel::RGB8(pixel));
+            profile_end("store pixel");
+            profile_end("ray casting pixel");
         }
-        println!(
-            "{:.2}% done. {} of {}",
-            (y * w) as f32 / (total_pixels) as f32 * 100.0,
-            y * w,
-            total_pixels
-        );
+        profile_end("ray casting row");
     }
-    image::save_buffer("image.png", &pixels.create_buffer(), w, h, image::RGBA(8)).unwrap()
+    profile_end("ray casting");
+    image::save_buffer("image.png", &pixels.create_buffer(), w, h, image::RGBA(8)).unwrap();
+    dump_flame();
+    profile_end("main");
+}
+
+#[cfg(not(feature = "profile"))]
+pub fn profile_start(_tag: &'static str) {}
+#[cfg(feature = "profile")]
+pub fn profile_start(tag: &'static str) {
+    flame::start(tag);
+}
+
+#[cfg(not(feature = "profile"))]
+pub fn profile_end(_tag: &'static str) {}
+#[cfg(feature = "profile")]
+pub fn profile_end(tag: &'static str) {
+    flame::end(tag);
+}
+
+#[cfg(not(feature = "profile"))]
+pub fn dump_flame() {}
+#[cfg(feature = "profile")]
+pub fn dump_flame() {
+    use std::fs::File;
+    flame::dump_html(&mut File::create("profile.html").unwrap()).unwrap();
 }

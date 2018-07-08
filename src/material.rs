@@ -3,6 +3,9 @@ use rand::{thread_rng, Rng};
 use ray::Ray;
 use vec::Vec3;
 
+#[cfg(feature = "profile")]
+use flame;
+
 pub type Attenuation = Vec3;
 
 pub trait Material {
@@ -19,6 +22,8 @@ impl Lambertian {
 }
 impl Material for Lambertian {
     fn scatter(&self, _ray: &Ray, hit_record: &HitRecord) -> Option<(Attenuation, Ray)> {
+        #[cfg(feature = "profile")]
+        let _guard = flame::start_guard("lambert scatter");
         let target = hit_record.p + hit_record.normal + Vec3::random_in_unit_sphere();
         Some((self.albedo, Ray::new(hit_record.p, target - hit_record.p)))
     }
@@ -35,6 +40,8 @@ impl Metal {
 }
 impl Material for Metal {
     fn scatter(&self, ray: &Ray, hit_record: &HitRecord) -> Option<(Attenuation, Ray)> {
+        #[cfg(feature = "profile")]
+        let _guard = flame::start_guard("metal scatter");
         let reflected = Vec3::reflect(&Vec3::unit_vector(&ray.direction()), &hit_record.normal);
         let scattered = Ray::new(
             hit_record.p,
@@ -63,6 +70,8 @@ fn schlick(cosine: f32, ref_idx: f32) -> f32 {
 }
 impl Material for Dialectric {
     fn scatter(&self, ray: &Ray, hit_record: &HitRecord) -> Option<(Attenuation, Ray)> {
+        #[cfg(feature = "profile")]
+        let _guard = flame::start_guard("dialectric scatter");
         let (outward_normal, ni_over_nt, cosine) =
             if Vec3::dot(&ray.direction(), &hit_record.normal) > 0.0 {
                 (

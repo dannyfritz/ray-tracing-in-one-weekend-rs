@@ -3,6 +3,9 @@ use ray::Ray;
 use std::rc::Rc;
 use vec::Vec3;
 
+#[cfg(feature = "profile")]
+use flame;
+
 pub struct HitRecord {
     pub t: f32,
     pub p: Vec3,
@@ -19,6 +22,8 @@ pub struct World {
 }
 impl World {
     pub fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+        #[cfg(feature = "profile")]
+        let _guard = flame::start_guard("world hit");
         self.hitables
             .iter()
             .fold((t_max, None), |(closest, hit), hitable| {
@@ -48,6 +53,8 @@ impl Sphere {
 }
 impl Hitable for Sphere {
     fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+        #[cfg(feature = "profile")]
+        let _guard = flame::start_guard("sphere hit");
         let oc = r.origin() - self.center;
         let a = Vec3::dot(&r.direction(), &r.direction());
         let b = Vec3::dot(&oc, &r.direction());
