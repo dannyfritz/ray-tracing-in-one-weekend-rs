@@ -4,7 +4,6 @@ use ncollide3d::math::Vector;
 use ncollide3d::partitioning::BVT;
 use ncollide3d::query::{Ray, RayIntersection};
 use scene::{ClosestRayTOICostFn, SceneObject};
-use std::rc::Rc;
 use utility::math::{reflect, refract};
 use utility::random::{rand, random_in_unit_sphere};
 use MAX_DEPTH;
@@ -18,11 +17,7 @@ fn no_color() -> Vector<f32> {
     Vector::new(0.0, 0.0, 0.0)
 }
 
-pub fn color(
-    ray: &Ray<f32>,
-    world: Rc<BVT<Rc<SceneObject>, AABB<f32>>>,
-    depth: u32,
-) -> Vector<f32> {
+pub fn color(ray: &Ray<f32>, world: &BVT<SceneObject, AABB<f32>>, depth: u32) -> Vector<f32> {
     #[cfg(feature = "profile")]
     let _guard = flame::start_guard("color");
     if depth > MAX_DEPTH {
@@ -34,7 +29,7 @@ pub fn color(
             match scene_object.material.scatter(&ray, ray_intersection) {
                 Some((attenuation, scattered)) => attenuation.component_mul(&color(
                     &Ray::new(scattered.origin + scattered.dir * 0.001, scattered.dir),
-                    world.clone(),
+                    world,
                     depth + 1,
                 )),
                 None => no_color(),

@@ -1,11 +1,5 @@
-#![cfg_attr(
-    feature = "cargo-clippy",
-    deny(clippy, clippy_perf, clippy_correctness)
-)]
-#![cfg_attr(
-    feature = "cargo-clippy",
-    warn(clippy_style, clippy_complexity, clippy_cargo)
-)]
+#![cfg_attr(feature = "cargo-clippy", deny(clippy, clippy_perf, clippy_correctness))]
+#![cfg_attr(feature = "cargo-clippy", warn(clippy_style, clippy_complexity, clippy_cargo))]
 #![cfg_attr(feature = "cargo-clippy", allow(unknown_lints))]
 
 extern crate image;
@@ -27,8 +21,8 @@ use ncollide3d::math::Vector;
 use pixel::{Pixel, Pixels};
 #[allow(unused_imports)]
 use scene::{random_scene, structured_art_scene};
-use utility::random::rand;
 use utility::profile;
+use utility::random::rand;
 
 const MAX_DEPTH: u32 = 50;
 const NUM_SAMPLES: u32 = 100;
@@ -49,7 +43,7 @@ fn main() {
                 let s_u = (x as f32 + rand()) / WIDTH as f32;
                 let s_v = (y as f32 + rand()) / HEIGHT as f32;
                 let ray = camera.get_ray(s_u, s_v);
-                pixel += color(&ray, world.clone(), 0);
+                pixel += color(&ray, &world, 0);
             }
             pixel /= NUM_SAMPLES as f32;
             profile::start("store pixel");
