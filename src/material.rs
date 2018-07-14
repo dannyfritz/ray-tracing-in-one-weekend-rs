@@ -4,7 +4,6 @@ use ncollide3d::math::Vector;
 use ncollide3d::partitioning::BVT;
 use ncollide3d::query::{Ray, RayIntersection};
 use scene::{ClosestRayTOICostFn, SceneObject};
-use std::rc::Rc;
 use utility::math::{reflect, refract};
 use utility::random::{rand, random_in_unit_sphere};
 use MAX_DEPTH;
@@ -18,11 +17,7 @@ fn no_color() -> Vector<f32> {
     Vector::new(0.0, 0.0, 0.0)
 }
 
-pub fn color(
-    ray: &Ray<f32>,
-    world: Rc<BVT<Rc<SceneObject>, AABB<f32>>>,
-    depth: u32,
-) -> Vector<f32> {
+pub fn color(ray: &Ray<f32>, world: &BVT<SceneObject, AABB<f32>>, depth: u32) -> Vector<f32> {
     #[cfg(feature = "profile")]
     let _guard = flame::start_guard("color");
     if depth > MAX_DEPTH {
@@ -34,7 +29,7 @@ pub fn color(
             match scene_object.material.scatter(&ray, ray_intersection) {
                 Some((attenuation, scattered)) => attenuation.component_mul(&color(
                     &Ray::new(scattered.origin + scattered.dir * 0.001, scattered.dir),
-                    world.clone(),
+                    &world,
                     depth + 1,
                 )),
                 None => no_color(),
@@ -48,7 +43,7 @@ pub fn color(
     }
 }
 
-pub trait Material {
+pub trait Material: Sync {
     fn scatter(
         &self,
         ray: &Ray<f32>,
@@ -56,10 +51,12 @@ pub trait Material {
     ) -> Option<(Attenuation, Ray<f32>)>;
 }
 
+#[allow(dead_code)]
 pub struct Lambertian {
     albedo: Vector<f32>,
 }
 impl Lambertian {
+    #[allow(dead_code)]
     pub fn new(albedo: Vector<f32>) -> Lambertian {
         Lambertian { albedo }
     }
@@ -78,11 +75,13 @@ impl Material for Lambertian {
     }
 }
 
+#[allow(dead_code)]
 pub struct Metal {
     albedo: Vector<f32>,
     fuzz: f32,
 }
 impl Metal {
+    #[allow(dead_code)]
     pub fn new(albedo: Vector<f32>, fuzz: f32) -> Metal {
         Metal { albedo, fuzz }
     }
@@ -106,10 +105,12 @@ impl Material for Metal {
     }
 }
 
+#[allow(dead_code)]
 pub struct Dialectric {
     ref_idx: f32,
 }
 impl Dialectric {
+    #[allow(dead_code)]
     pub fn new(ref_idx: f32) -> Dialectric {
         Dialectric { ref_idx }
     }

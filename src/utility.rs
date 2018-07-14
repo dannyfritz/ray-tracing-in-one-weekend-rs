@@ -11,7 +11,7 @@ pub mod random {
     }
     pub fn random_in_unit_sphere() -> Vector<f32> {
         loop {
-            let vec = 2.0 * Vector::new(rand(), rand(), rand()) - Vector::new(1.0, 1.0, 1.0);
+            let vec = 2.0 * Vector::new(rand() - 0.5, rand() - 0.5, rand() - 0.5);
             if vec.norm_squared() <= 1.0 {
                 return vec;
             }
@@ -19,7 +19,7 @@ pub mod random {
     }
     pub fn random_in_unit_disk() -> Vector<f32> {
         loop {
-            let p = 2.0 * Vector::<f32>::new(rand(), rand(), 0.0) - Vector::new(1.0, 1.0, 0.0);
+            let p = 2.0 * Vector::<f32>::new(rand() - 0.5, rand() - 0.5, 0.0);
             if p.norm_squared() <= 1.0 {
                 return p;
             }
@@ -45,29 +45,5 @@ pub mod math {
         } else {
             None
         }
-    }
-}
-
-pub mod profile {
-    #[cfg(not(feature = "profile"))]
-    pub fn start(_tag: &'static str) {}
-    #[cfg(feature = "profile")]
-    pub fn start(tag: &'static str) {
-        flame::start(tag);
-    }
-
-    #[cfg(not(feature = "profile"))]
-    pub fn end(_tag: &'static str) {}
-    #[cfg(feature = "profile")]
-    pub fn end(tag: &'static str) {
-        flame::end(tag);
-    }
-
-    #[cfg(not(feature = "profile"))]
-    pub fn dump_flame() {}
-    #[cfg(feature = "profile")]
-    pub fn dump_flame() {
-        use std::fs::File;
-        flame::dump_html(&mut File::create("profile.html").unwrap()).unwrap();
     }
 }
